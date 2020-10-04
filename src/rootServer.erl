@@ -146,7 +146,7 @@ handle_cast({getAllPath}, {RootCount, Version, Mop}) ->
 
 handle_call({calculateRoute, To}, From, {RootCount, Version, Mop}) ->
   {Path, PathLength} = utils:calculatePath(To, Mop, self()),
-  io:format("calculateRoute, DODAGID: ~p, Path: ~pPathLength: ~p~n", [self(), Path, PathLength]),
+  io:format("calculateRoute, DODAGID: ~p, Path: ~p PathLength: ~p~n", [self(), Path, PathLength]),
   {reply, {Path, PathLength}, {RootCount, Version, Mop}};
 
 handle_call({hi}, From, State) ->

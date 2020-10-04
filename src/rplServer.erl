@@ -58,7 +58,7 @@ handle_call({addNode, node}, _From, Data) ->
 %  Pid = 0, Ref = 0,
 %  {_, {Pid, Ref}} = rpc:call(?NODE_1, ?NODE_SERVER, start_link, [{Data#rplServerData.nodeCount, Data#rplServerData.mop}]),
   io:format("rplserver wants to add a normal node: ~p~n", [Pid]),
- % ets:insert(?NODE_LIST, {Pid, {Ref, hd(Data#rplServerData.randomLocationList), hd(tl(Data#rplServerData.randomLocationList))}}),
+  % ets:insert(?NODE_LIST, {Pid, {Ref, hd(Data#rplServerData.randomLocationList), hd(tl(Data#rplServerData.randomLocationList))}}),
   NewData = updateData(Data#rplServerData.nodeCount + 1, Data#rplServerData.rootCount,
     tl(tl(Data#rplServerData.randomLocationList)), Data#rplServerData.msg_id, Data#rplServerData.messageList, Data#rplServerData.mop),
   {reply, {Pid, Ref}, NewData};
@@ -66,10 +66,10 @@ handle_call({addNode, node}, _From, Data) ->
 % CALL from the GUI - to add a root node
 % Return to the GUI the Pid of the new node
 handle_call({addNode, root}, _From, Data) ->
-  io:format("rplserver wants to add a root node~n"),
   {_, {Pid, Ref}} = rootServer:start_link({Data#rplServerData.rootCount, Data#rplServerData.mop}),
+  io:format("rplserver wants to add a root node: ~p~n", [Pid]),
 %  ets:insert(?NODE_LIST, {Pid, {Ref, hd(Data#rplServerData.randomLocationList), hd(tl(Data#rplServerData.randomLocationList))}}),
-  ets:insert(?ROOT_LIST, {Pid, {Ref, hd(Data#rplServerData.randomLocationList), hd(tl(Data#rplServerData.randomLocationList))}}),
+  %ets:insert(?ROOT_LIST, {Pid, {Ref, hd(Data#rplServerData.randomLocationList), hd(tl(Data#rplServerData.randomLocationList))}}),
   NewData = updateData(Data#rplServerData.nodeCount + 1, Data#rplServerData.rootCount + 1,
     tl(tl(Data#rplServerData.randomLocationList)), Data#rplServerData.msg_id, Data#rplServerData.messageList, Data#rplServerData.mop),
   {reply, {Pid, Ref}, NewData}.
