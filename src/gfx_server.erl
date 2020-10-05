@@ -17,11 +17,11 @@
 -export([start/1, init/1, terminate/2, code_change/3, handle_info/2, handle_call/3, handle_cast/2, handle_event/2,start_global/1]).
 -compile(export_all).
 -include_lib("wx/include/wx.hrl").
-
+-include("include/header.hrl").
 
 -define(MapSize, 750).
 -define(GridMapSize,?MapSize div 2).
--define(SERVER,?MODULE).
+-define(MyServer,?MODULE).
 -define(wxPurple,{16#73,16#26,16#4D,16#FF}).
 -define(wxDarkGreen,{16#1F,16#60,16#40,16#FF}).
 -define(wxYellow,{16#FF,16#FF,16#4D,16#FF}).
@@ -48,10 +48,10 @@
 
 
 start_global(Node) ->
-  wx_object:start_link({local,?SERVER},?MODULE,[global,Node],[]).
+  wx_object:start_link({local,?MyServer},?MODULE,[global,Node],[]).
 
 start(Node) ->
-  wx_object:start_link({local,?SERVER},?MODULE,[local,Node],[]).
+  wx_object:start_link({local,?MyServer},?MODULE,[local,Node],[]).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -225,7 +225,7 @@ handle_event(#wx{obj = Q3_Node_List, event = #wxCommand{type = command_listbox_s
       NewMsgState = srcSelected,
       SrcText = "Source: " ++ NewSrc,
       wxTextCtrl:changeValue(SrcTextBox,SrcText),
-     % wxStaticText:setLabel(SrcTextBox,"Source: " ++ pid_to_string(Pid)),
+      % wxStaticText:setLabel(SrcTextBox,"Source: " ++ pid_to_string(Pid)),
       wxButton:enable(State#state.removeSrcBtn),
       NewState = State#state{src = Pid,msgState = NewMsgState},
       {noreply, NewState};
@@ -306,7 +306,7 @@ handle_event(#wx{event=#wxMouse{type = left_down}=_Vec}, State = #state{}) -> {n
 %% send Message event
 handle_event(#wx{obj = SendMsgBtn, event = #wxCommand{type = command_button_clicked}},
     State = #state{sendMsg = SendMsgBtn,src = Src,destinations = Destinations,msg = MsgTextBox,
-    msgID = MsgId}) ->
+      msgID = MsgId}) ->
   Msg = wxTextCtrl:getLabel(MsgTextBox),
   DestinationsList = maps:to_list(Destinations),
   OutputList = [Y || {_X,Y} <- DestinationsList],
@@ -465,7 +465,7 @@ queueKeyToPid(Key,2) ->
 
 integer_to_string(Integer) when is_integer(Integer) ->
   erlang:integer_to_list(Integer).
-  %lists:flatten(io_lib:format("~p", [Integer])).
+%lists:flatten(io_lib:format("~p", [Integer])).
 
 init_layout(Mode,Node) ->
   Wx = wx:new(),
@@ -643,9 +643,10 @@ create(RootOrNode, State = #state{locationMap = LocationMap,numOfRoots = NumOfRo
   {Pid1,Ref1} = gen_server:call(rplServer, {addNode, node}),
   ets:insert(?nodePidsEts,{nodePid,Pid}),
   ets:insert(?locationEts,{Pid1,{Ref1,NumOfRoots,RootOrNode,Func,Type,?incerement,{350,400},normal}}),
-
   NewState = case RootOrNode of
-               root -> State#state{numOfRoots = NumOfRoots + 1};
+               root ->
+                 ets:insert(?ROOT_LIST, {Pid, {Ref,350,350}}),
+                 State#state{numOfRoots = NumOfRoots + 1};
                node -> State#state{numOfNodes = NumOfNodes + 1}
              end,
   if
@@ -677,9 +678,9 @@ draw(State = #state{panel = Panel,node_list_q_1 = Q1,node_list_q_2 = Q2,
   {Nq1,Nq2,Nq3,Nq4} = update(Panel,PidList,Q1,Q2,Q3,Q4),
   LocUpdateState = State#state{node_list_q_1 = Nq1,node_list_q_2 = Nq2,node_list_q_3 = Nq3,node_list_q_4 = Nq4},
   %case Src of
-   % nullptr   ->   wxStaticText:setLabel(SrcTextBox,"Source: null");
-    %_ -> wxStaticText:setLabel(SrcTextBox,Src)
-    %_ -> wxStaticText:setLabel(SrcTextBox,Src)
+  % nullptr   ->   wxStaticText:setLabel(SrcTextBox,"Source: null");
+  %_ -> wxStaticText:setLabel(SrcTextBox,Src)
+  %_ -> wxStaticText:setLabel(SrcTextBox,Src)
   %end,
   NewState =  updateQueues(LocUpdateState),
   {draw_OK,NewState}.
@@ -850,13 +851,18 @@ eraseNodes(Panel) ->
 
 %updateCoordinates({Pid,{Ref,NumOfRoots,_DontCare,Func,MovementType,Direction,{X,Y}}}) ->
 updateCoordinates({nodePid,Pid}) ->
-  [{Pid,{Ref,NumOfRoots,_DontCare,Func,MovementType,Direction,{X,Y},_MsgRole}}] = ets:lookup(?locationEts,Pid),
+  [{Pid,{Ref,NumOfRoots,RootOrNode,Func,MovementType,Direction,{X,Y},_MsgRole}}] = ets:lookup(?locationEts,Pid),
   {NewX,NewY,NewDirection} = case MovementType of
                                random -> getRandomCoordinates(X,Y);
                                polynomial -> getPolynomialCoordinates(Func,Direction,X);
                                sinusoidal -> getSinusoidalCoordinates(Func,Direction,X)
                              end,
-  ets:insert(?locationEts,{Pid,{Ref,NumOfRoots,_DontCare,Func,MovementType,NewDirection,{NewX,NewY}}}).
+  if
+    RootOrNode == root ->
+      ets:insert(?locationEts,{Pid,{Ref,NumOfRoots,RootOrNode,Func,MovementType,NewDirection,{NewX,NewY}}}),
+      ets:insert(?ROOT_LIST,{Pid,{Ref,NewX,NewY}});
+    true ->  ets:insert(?locationEts,{Pid,{Ref,NumOfRoots,RootOrNode,Func,MovementType,NewDirection,{NewX,NewY}}})
+  end.
 %NewLocationsMap = maps:update(Pid,{Ref,NumOfRoots,_DontCare,Func,MovementType,NewDirection,{NewX,NewY}},LocationMap),
 %NewLocationsMap.
 
