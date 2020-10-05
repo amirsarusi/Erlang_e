@@ -68,6 +68,7 @@ handle_call({addNode, node}, _From, Data) ->
 handle_call({addNode, root}, _From, Data) ->
   {_, {Pid, Ref}} = rootServer:start_link({Data#rplServerData.rootCount, Data#rplServerData.mop}),
   io:format("rplserver wants to add a root node: ~p~n", [Pid]),
+  io:format("for git push this is stupid~n"),
 %  ets:insert(?NODE_LIST, {Pid, {Ref, hd(Data#rplServerData.randomLocationList), hd(tl(Data#rplServerData.randomLocationList))}}),
   %ets:insert(?ROOT_LIST, {Pid, {Ref, hd(Data#rplServerData.randomLocationList), hd(tl(Data#rplServerData.randomLocationList))}}),
   NewData = updateData(Data#rplServerData.nodeCount + 1, Data#rplServerData.rootCount + 1,
