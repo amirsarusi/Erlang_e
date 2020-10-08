@@ -636,18 +636,18 @@ create(RootOrNode, State = #state{locationMap = LocationMap,numOfRoots = NumOfRo
                       polynomial -> getStartingPos(Func,Type,X,RootOrNode, State);
                       sinusoidal -> getStartingPos(Func,Type,X,RootOrNode, State)
                     end,
-  {Pid,Ref} = gen_server:call(rplServer, {addNode, root}),
-  ets:insert(?nodePidsEts,{nodePid,Pid}),
-  ets:insert(?locationEts,{Pid,{Ref,NumOfRoots,RootOrNode,Func,Type,?incerement,{350,350},normal}}),
-
-  {Pid1,Ref1} = gen_server:call(rplServer, {addNode, node}),
-  ets:insert(?nodePidsEts,{nodePid,Pid}),
-  ets:insert(?locationEts,{Pid1,{Ref1,NumOfRoots,RootOrNode,Func,Type,?incerement,{350,400},normal}}),
   NewState = case RootOrNode of
                root ->
+                 {Pid,Ref} = gen_server:call(rplServer, {addNode, root}),
+                 ets:insert(?nodePidsEts,{nodePid,Pid}),
+                 ets:insert(?locationEts,{Pid,{Ref,NumOfRoots,RootOrNode,Func,Type,?incerement,{350,350},normal}}),
                  ets:insert(?ROOT_LIST, {Pid, {Ref,350,350}}),
                  State#state{numOfRoots = NumOfRoots + 1};
-               node -> State#state{numOfNodes = NumOfNodes + 1}
+               node ->
+                 {Pid1,Ref1} = gen_server:call(rplServer, {addNode, node}),
+                 ets:insert(?nodePidsEts,{nodePid,Pid1}),
+                 ets:insert(?locationEts,{Pid1,{Ref1,NumOfRoots,RootOrNode,Func,Type,?incerement,{350,400},normal}}),
+                 State#state{numOfNodes = NumOfNodes + 1}
              end,
   if
     RootOrNode == root -> {root_OK,NewState};

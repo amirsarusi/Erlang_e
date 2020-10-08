@@ -37,14 +37,8 @@ findNeighbors(MyNodeLocation, NodeLocationList) ->
 %{_,{_,_,_,_,_,_,{X_Node_1,Y_Node_1},_}}
 %%{_,{_,_,_,_,_,_,{X_Node_2,Y_Node_2},_}}
 calculateDistance({_,{_,_,_,_,_,_,{X_Node_1,Y_Node_1},_}}, {_,{_,_,_,_,_,_,{X_Node_2,Y_Node_2},_}}) ->
-  Tx1 = gfx_server:transformXtoT(X_Node_1),
-  Tx2 = gfx_server:transformXtoT(X_Node_2),
-  Ty1 = gfx_server:transformXtoT(Y_Node_1),
-  Ty2 = gfx_server:transformXtoT(Y_Node_2),
-  io:format("first node {x,y} = ~p~n",[{Tx1,Ty1}]),
-  io:format("second node {x,y} = ~p~n",[{Tx2,Ty2}]),
-  X_distance = erlang:abs(Tx1 - Tx2),
-  Y_distance = erlang:abs(Ty2 - Ty1),
+  X_distance = erlang:abs(X_Node_1 - X_Node_2),
+  Y_distance = erlang:abs(Y_Node_1 - Y_Node_2),
   math:sqrt(X_distance * X_distance + Y_distance * Y_distance).
 
 
