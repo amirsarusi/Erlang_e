@@ -316,7 +316,7 @@ handle_event(#wx{obj = SendMsgBtn, event = #wxCommand{type = command_button_clic
   case length(OutputList) of
     0 -> {noreply,State};
     1 ->
-      gen_server:cast(rplServer,{sendUnicastMessage,Src,OutputList,Msg}), %{sendUnicastMessage, From, To, Msg}
+      gen_server:cast(rplServer,{sendUnicastMessage,Src,hd(OutputList),Msg}), %{sendUnicastMessage, From, To, Msg}
       {noreply,State#state{msgID = MsgId + 1,msgState = sentMsg}};
     _ ->
       MulticastMessageFormat = makeMulticast(OutputList,Src,Msg),
